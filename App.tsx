@@ -135,7 +135,8 @@ const App: React.FC = () => {
         </section>
         
         <footer className="mt-16 border-t border-slate-700 py-8 text-center text-slate-500">
-            <p>&copy; {new Date().getFullYear()} Simulador de Juros Compostos. Todos os direitos reservados.</p>
+            <p>&copy; {new Date().getFullYear()} Paulo Tavares. Todos os direitos reservados.</p>
+            <p className="mt-2">Contato: Whatsapp (83) 99938-5147</p>
         </footer>
       </main>
     </div>
