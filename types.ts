@@ -31,3 +31,11 @@ export interface TableDataRow {
   totalInterest: number;
   totalAccumulated: number;
 }
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string; // In a real app, never store plain text passwords
+  isAdmin: boolean;
+}
