@@ -17,16 +17,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
     setIsLoading(true);
     setError('');
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 600));
+    try {
+        const user = await validateLogin(email, password);
 
-    const user = validateLogin(email, password);
-
-    if (user) {
-      onLogin(user);
-    } else {
-      setError('Email ou senha inválidos.');
-      setIsLoading(false);
+        if (user) {
+          onLogin(user);
+        } else {
+          setError('Email ou senha inválidos.');
+        }
+    } catch (err) {
+        setError('Erro ao tentar fazer login. Tente novamente.');
+    } finally {
+        setIsLoading(false);
     }
   };
 

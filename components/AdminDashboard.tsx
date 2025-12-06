@@ -11,6 +11,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onL
   const [users, setUsers] = useState<User[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Form State
   const [name, setName] = useState('');
@@ -22,8 +23,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onL
     loadUsers();
   }, []);
 
-  const loadUsers = () => {
-    setUsers(getUsers());
+  const loadUsers = async () => {
+    setIsLoading(true);
+    const data = await getUsers();
+    setUsers(data);
+    setIsLoading(false);
   };
 
   const handleOpenModal = (user?: User) => {
@@ -43,19 +47,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onL
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (id === currentUser.id) {
       alert("Você não pode excluir sua própria conta.");
       return;
     }
     if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
-      deleteUser(id);
-      loadUsers();
+      setIsLoading(true);
+      await deleteUser(id);
+      await loadUsers();
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     const newUser: User = {
       id: editingUser ? editingUser.id : crypto.randomUUID(),
@@ -65,8 +71,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onL
       isAdmin,
     };
 
-    saveUser(newUser);
-    loadUsers();
+    await saveUser(newUser);
+    await loadUsers();
+    setIsLoading(false);
     setIsModalOpen(false);
   };
 
@@ -90,13 +97,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onL
           <h2 className="text-xl font-semibold text-white">Gerenciar Usuários</h2>
           <button
             onClick={() => handleOpenModal()}
-            className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 hover:bg-rose-500"
+            disabled={isLoading}
+            className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 hover:bg-rose-500 disabled:opacity-50"
           >
             + Novo Usuário
           </button>
         </div>
 
         <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-800/50 shadow-2xl">
+          {isLoading && users.length === 0 ? (
+             <div className="p-8 text-center text-slate-400">Carregando usuários...</div>
+          ) : (
           <table className="min-w-full divide-y divide-slate-700">
             <thead className="bg-slate-800">
               <tr>
@@ -129,14 +140,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onL
                   <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                     <button
                       onClick={() => handleOpenModal(user)}
-                      className="mr-4 text-rose-400 hover:text-rose-300"
+                      className="mr-4 text-rose-400 hover:text-rose-300 disabled:opacity-50"
+                      disabled={isLoading}
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => handleDelete(user.id)}
                       className="text-slate-500 hover:text-red-400 disabled:opacity-50"
-                      disabled={user.id === currentUser.id}
+                      disabled={user.id === currentUser.id || isLoading}
                     >
                       Excluir
                     </button>
@@ -145,6 +157,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onL
               ))}
             </tbody>
           </table>
+          )}
         </div>
       </div>
 
@@ -202,15 +215,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onL
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600"
+                  disabled={isLoading}
+                  className="rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600 disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-500"
+                  disabled={isLoading}
+                  className="rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-500 disabled:opacity-50"
                 >
-                  Salvar
+                  {isLoading ? 'Salvando...' : 'Salvar'}
                 </button>
               </div>
             </form>
