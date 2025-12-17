@@ -7,66 +7,89 @@ interface ResultsDisplayProps {
   result: CalculationResult;
 }
 
-const SummaryCard: React.FC<{ title: string; value: string; highlight?: boolean }> = ({ title, value, highlight }) => (
-  <div className={`rounded-lg p-4 text-center ${highlight ? 'bg-rose-700/80 text-white' : 'bg-slate-700/50'}`}>
-    <p className="text-sm text-slate-400">{title}</p>
-    <p className={`text-2xl font-bold ${highlight ? 'text-white' : 'text-slate-200'}`}>{value}</p>
+const SummaryCard: React.FC<{ title: string; value: string; isPrimary?: boolean }> = ({ title, value, isPrimary }) => (
+  <div className={`overflow-hidden rounded-lg bg-slate-800 px-4 py-5 shadow sm:p-6 ${isPrimary ? 'ring-2 ring-rose-500' : ''}`}>
+    <dt className="truncate text-sm font-medium text-slate-400">{title}</dt>
+    <dd className={`mt-1 text-3xl font-semibold tracking-tight ${isPrimary ? 'text-white' : 'text-slate-200'}`}>
+      {value}
+    </dd>
   </div>
 );
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
   return (
-    <div className="mt-10 w-full space-y-8 rounded-lg border border-slate-700 bg-slate-800/50 p-6 shadow-2xl backdrop-blur-sm md:p-8">
-      <h2 className="text-center text-3xl font-bold text-white">Resultado da Simulação</h2>
-      
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <SummaryCard title="Valor total final" value={formatCurrency(result.summary.finalBalance)} highlight />
-        <SummaryCard title="Valor total investido" value={formatCurrency(result.summary.totalInvested)} />
-        <SummaryCard title="Total em juros" value={formatCurrency(result.summary.totalInterest)} />
+    <div className="mt-10 space-y-10">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <SummaryCard title="Valor Total Final" value={formatCurrency(result.summary.finalBalance)} isPrimary />
+        <SummaryCard title="Total Investido" value={formatCurrency(result.summary.totalInvested)} />
+        <SummaryCard title="Total em Juros" value={formatCurrency(result.summary.totalInterest)} />
       </div>
 
-      <div>
-        <h3 className="mb-4 text-xl font-semibold text-white">Gráfico de Evolução:</h3>
-        <div className="h-80 w-full">
-          <ResponsiveContainer>
-            <LineChart data={result.chartData} margin={{ top: 5, right: 20, left: 30, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-              <XAxis dataKey="period" stroke="#94a3b8" />
-              <YAxis tickFormatter={(value) => `R$${Number(value) / 1000}k`} stroke="#94a3b8" />
-              <Tooltip
-                formatter={(value: number) => formatCurrency(value)}
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#cbd5e1' }}
-                labelStyle={{ color: '#f1f5f9' }}
+      <div className="rounded-lg bg-slate-800 p-6 shadow-lg">
+        <h3 className="mb-4 text-lg font-medium leading-6 text-white">Evolução do Patrimônio</h3>
+        <div className="h-96 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={result.chartData}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis 
+                dataKey="period" 
+                stroke="#94a3b8"
+                label={{ value: 'Período', position: 'insideBottomRight', offset: -10, fill: '#94a3b8' }} 
               />
-              <Legend wrapperStyle={{ color: '#cbd5e1' }} />
-              <Line type="monotone" dataKey="Valor Investido" stroke="#64748b" strokeWidth={2} dot={false} name="Valor Investido"/>
-              <Line type="monotone" dataKey="Total Acumulado" stroke="#e11d48" strokeWidth={2} dot={false} name="Total Acumulado"/>
+              <YAxis 
+                stroke="#94a3b8"
+                tickFormatter={(value) => `R$ ${value / 1000}k`}
+              />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#f8fafc' }}
+                itemStyle={{ color: '#f8fafc' }}
+                formatter={(value: number) => formatCurrency(value)}
+                labelFormatter={(label) => `Período: ${label}`}
+              />
+              <Legend wrapperStyle={{ paddingTop: '20px' }} />
+              <Line 
+                type="monotone" 
+                dataKey="Valor Investido" 
+                stroke="#94a3b8" 
+                strokeWidth={2}
+                dot={false}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="Total Acumulado" 
+                stroke="#e11d48" 
+                strokeWidth={3}
+                activeDot={{ r: 8 }} 
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
       
-      <div>
-        <h3 className="mb-4 text-xl font-semibold text-white">Tabela Detalhada:</h3>
-        <div className="max-h-96 overflow-y-auto rounded-lg border border-slate-700">
+      <div className="rounded-lg bg-slate-800 p-6 shadow-lg overflow-hidden">
+        <h3 className="mb-4 text-lg font-medium leading-6 text-white">Tabela Detalhada</h3>
+        <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-700">
-            <thead className="sticky top-0 bg-slate-800">
+            <thead className="bg-slate-700/50">
               <tr>
-                {['Mês', 'Juros do Mês', 'Total Investido', 'Total em Juros', 'Total Acumulado'].map(header => (
-                  <th key={header} scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
-                    {header}
-                  </th>
-                ))}
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-300">Mês</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-300">Juros (Mês)</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-300">Total Investido</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-300">Total Juros</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-white">Total Acumulado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700 bg-slate-900/50">
+            <tbody className="divide-y divide-slate-700 bg-slate-800">
               {result.tableData.map((row) => (
-                <tr key={row.month} className="hover:bg-slate-800/70">
-                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-300">{row.month}</td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-300">{formatCurrency(row.interest)}</td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-300">{formatCurrency(row.totalInvested)}</td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-300">{formatCurrency(row.totalInterest)}</td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-rose-400">{formatCurrency(row.totalAccumulated)}</td>
+                <tr key={row.month} className="hover:bg-slate-700/50">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-300">{row.month}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">{formatCurrency(row.interest)}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">{formatCurrency(row.totalInvested)}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-400">{formatCurrency(row.totalInterest)}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-white">{formatCurrency(row.totalAccumulated)}</td>
                 </tr>
               ))}
             </tbody>
